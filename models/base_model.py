@@ -11,8 +11,8 @@ Base = declarative_base()
 
 class BaseModel:
     """Base class for all hbnb models"""
-    def __init__(self, *args, **kwargs):
 
+    def __init__(self, *args, **kwargs):
         """Instantiates a new model"""
         if not kwargs:
             from models import storage
