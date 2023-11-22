@@ -15,6 +15,15 @@ from models.review import Review
 
 class HBNBCommand(cmd.Cmd):
     """ Contains the functionality for the HBNB console"""
+    __classes = {
+        "BaseModel",
+        "User",
+        "State",
+        "City",
+        "Amenity",
+        "Place",
+        "Review"
+    }
 
     cmd_args = sys.argv
     # determines prompt for interactive/non-interactive modes
@@ -249,16 +258,17 @@ class HBNBCommand(cmd.Cmd):
         print_list = []
 
         if args:
-            args = args.split(' ')[0]  # remove possible trailing args
-            if args not in HBNBCommand.classes:
-                print("** class doesn't exist **")
-                return
-            for k, v in storage._FileStorage__objects.items():
-                if k.split('.')[0] == args:
-                    print_list.append(str(v))
+            args = args.split(" ")
+            if args[0] not in self.__classes:
+                raise NameError()
+
+            o = storage.all(eval(args[0]))
+            print([o[k].__str__() for k in o])
+            return
         else:
-            for k, v in storage._FileStorage__objects.items():
-                print_list.append(str(v))
+            o = storage.all()
+            print([o[k].__str__() for k in o])
+            return
 
         print(print_list)
 
