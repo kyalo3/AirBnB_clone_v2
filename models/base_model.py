@@ -23,10 +23,10 @@ class BaseModel:
         else:
             for key, value in kwargs.items():
                 if key == 'updated_at' or key == 'created_at':
-                    setattr(self, key, datetime.strptime(value, '%Y-%m-%dT%H:%M:%S.%f'))
+                    setattr(self, key, datetime.strptime(
+                        value, '%Y-%m-%dT%H:%M:%S.%f'))
                 elif key != '__class__':
                     setattr(self, key, value)
-
 
     def __str__(self):
         """Returns a string representation of the instance"""
@@ -50,7 +50,7 @@ class BaseModel:
         dictionary['updated_at'] = self.updated_at.isoformat()
         dictionary.pop('_sa_instance_state', None)
         return dictionary
-    
+
     def delete(self):
         from models import storage
         storage.delete(self)
