@@ -36,17 +36,17 @@ sudo chown -R ubuntu:ubuntu /data
 sudo sh -c 'echo "server {
 	listen 80 default_server;
 	listen [::]:80 default_server;
-	add_header X-Served-By $HOSTNAME;
+	add_header X-Served-By '$HOSTNAME' always;
 	root   /var/www/html;
 	index  index.html index.htm;
 
 	location /hbnb_static {
-	    alias /data/web_static/current;
-	    index index.html index.htm;
+		alias /data/web_static/current;
+		index index.html index.htm;
 	}
 
 	location /redirect_me {
-	    return 301 https://www.youtube.com/watch?v=QH2-TGUlwu4;
+		return 301 https://www.youtube.com/watch?v=QH2-TGUlwu4;
 	}
 
 	error_page 404 /404.html;
