@@ -1,14 +1,18 @@
 #!/usr/bin/env bash
-# Setup Nginx to serve airbnb static files
+# Setup Nginx to serve Airbnb static files
 
+# Install Nginx if not already installed
 if ! command -v nginx &> /dev/null; then
 	sudo apt-get update
 	sudo apt-get install -y nginx
+	sudo service nginx start
 fi
+
+# Create directory structure for static files
 sudo mkdir -p /data/web_static/releases/test/
 sudo mkdir -p /data/web_static/shared/
 
-sudo touch /data/web_static/releases/test/index.html
+# Create a simple index.html file
 sudo sh -c 'echo "<html>
   <head>
   </head>
@@ -17,39 +21,40 @@ sudo sh -c 'echo "<html>
   </body>
 </html>" > /data/web_static/releases/test/index.html'
 
+# Remove existing symbolic link if present
 if [ -L /data/web_static/current ]; then
 	rm /data/web_static/current
 fi
 
-sudo ln -s /data/web_static/releases/test/ /data/web_static/current
+# Create a symbolic link to the test release
+sudo ln -sf /data/web_static/releases/test/ /data/web_static/current
 
+# Set ownership to ubuntu user and group
 sudo chown -R ubuntu:ubuntu /data
 
-sudo tee /etc/nginx/sites-available/airbnb <<EOF
-server {
-	listen 80;
-	listen [::]:80;
-	server_name marymutuku.tech;
+# Configure Nginx default server block
+sudo sh -c 'echo "server {
+	listen 80 default_server;
+	listen [::]:80 default_server;
+	add_header X-Served-By $HOSTNAME;
+	root   /var/www/html;
+	index  index.html index.htm;
 
-	root /var/www/html;
-
-	location /hbnb_static/ {
-		alias /data/web_static/current/;
-		index index.html index.htm;
+	location /hbnb_static {
+	    alias /data/web_static/current;
+	    index index.html index.htm;
 	}
+
+	location /redirect_me {
+	    return 301 https://www.youtube.com/watch?v=QH2-TGUlwu4;
+	}
+
 	error_page 404 /404.html;
-	location = /404.html {
-		root /usr/share/nginx/html;
-		internal;
+	location /404 {
+	  root /var/www/html;
+	  internal;
 	}
-	location / {
-		try_files $uri $uri/ =404;
-	}
-}
-EOF
-
-# Create a symbolic link to enable the server block
-sudo ln -s /etc/nginx/sites-available/airbnb /etc/nginx/sites-enabled/
+}" > /etc/nginx/sites-available/default'
 
 # Restart Nginx
 sudo service nginx restart
