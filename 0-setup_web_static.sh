@@ -32,11 +32,11 @@ sudo ln -sf /data/web_static/releases/test/ /data/web_static/current
 # Set ownership to ubuntu user and group
 sudo chown -R ubuntu:ubuntu /data
 
-# Configure Nginx default server block
+# Configure Nginx hbnb_static server block
+sudo touch /etc/nginx/sites-available/hbnb_static
 sudo sh -c 'echo "server {
-	listen 80 default_server;
-	listen [::]:80 default_server;
-	add_header X-Served-By '$HOSTNAME' always;
+	listen 80;
+	listen [::]:80;
 	root   /var/www/html;
 	index  index.html index.htm;
 
@@ -54,7 +54,7 @@ sudo sh -c 'echo "server {
 	  root /var/www/html;
 	  internal;
 	}
-}" > /etc/nginx/sites-available/default'
+}" > /etc/nginx/sites-available/hbnb_static'
 
 # Restart Nginx
 sudo service nginx restart
