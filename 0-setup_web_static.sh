@@ -14,10 +14,13 @@ fi
 sudo mkdir -p /data/web_static/shared/
 sudo mkdir -p /data/web_static/releases/test/
 echo "Great School" | sudo tee /data/web_static/releases/test/index.html
+if [ -L /data/web_static/current ]; then
+	sudo rm /data/web_static/current
+fi
 sudo ln -s /data/web_static/releases/test/ /data/web_static/current
 sudo chown -R ubuntu:ubuntu /data/
 sudo sed -i '/X-Served-By/a\
-	    location /hbnb_static {\
-	        alias /data/web_static/current;\
-	    }' /etc/nginx/sites-available/default
+		location /hbnb_static {\
+		    alias /data/web_static/current;\
+		}' /etc/nginx/sites-available/default
 sudo service nginx restart
