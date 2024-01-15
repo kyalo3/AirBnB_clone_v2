@@ -1,38 +1,23 @@
 #!/usr/bin/env bash
-# Sets up a web server for deployment of web_static.
+# installs and configures nginx on server for web_static
 
-apt-get update
-apt-get install -y nginx
-
-mkdir -p /data/web_static/releases/test/
-mkdir -p /data/web_static/shared/
-echo "Holberton School" > /data/web_static/releases/test/index.html
-ln -sf /data/web_static/releases/test/ /data/web_static/current
-
-chown -R ubuntu /data/
-chgrp -R ubuntu /data/
-
-printf %s "server {
-	listen 80 default_server;
-	listen [::]:80 default_server;
-	add_header X-Served-By $HOSTNAME;
-	root   /var/www/html;
-	index  index.html index.htm;
-
-	location /hbnb_static {
-	    alias /data/web_static/current;
-	    index index.html index.htm;
-	}
-
-	location /redirect_me {
-	    return 301 http://cuberule.com/;
-	}
-
-	error_page 404 /404.html;
-	location /404 {
-	  root /var/www/html;
-	  internal;
-	}
-}" > /etc/nginx/sites-available/default
-
-service nginx restart
+if ! command -v nginx &> /dev/null
+then
+	sudo apt-get -y update
+	sudo apt-get -y install nginx
+	sudo ufw allow 'Nginx HTTP'
+	echo "Hello World!" | sudo tee /var/www/html/index.html
+	echo "Page not Found" | sudo tee /var/www/html/custom_404.html
+	sudo sed -i  "s/\s*server_name _;/&\n\trewrite ^\/redirect_me.*$ https:\/\/example.com permanent;\n\terror_page 404 \/custom_404.html;\n\tadd_header X-Served-By \"$(hostname)\";/" /etc/nginx/sites-available/default
+	sudo service nginx start
+fi
+sudo mkdir -p /data/web_static/shared/
+sudo mkdir -p /data/web_static/releases/test/
+echo "Great School" | sudo tee /data/web_static/releases/test/index.html
+sudo ln -s /data/web_static/releases/test/ /data/web_static/current
+sudo chown -R ubuntu:ubuntu /data/
+sudo sed -i '/X-Served-By/a\
+	    location /hbnb_static {\
+	        alias /data/web_static/current;\
+	    }' /etc/nginx/sites-available/default
+sudo service nginx restart
