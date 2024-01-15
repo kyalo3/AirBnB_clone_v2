@@ -1,60 +1,59 @@
 #!/usr/bin/env bash
 # Setup Nginx to serve Airbnb static files
 
-# Install Nginx if not already installed
 if ! command -v nginx &> /dev/null; then
 	sudo apt-get update
 	sudo apt-get install -y nginx
-	sudo service nginx start
 fi
 
-# Create directory structure for static files
 sudo mkdir -p /data/web_static/releases/test/
 sudo mkdir -p /data/web_static/shared/
 
-# Create a simple index.html file
-sudo sh -c 'echo "<html>
+sudo tee /data/web_static/releases/test/index.html <<EOF
+<html>
   <head>
   </head>
   <body>
 	Holberton School
   </body>
-</html>" > /data/web_static/releases/test/index.html'
+</html>
+EOF
 
-# Remove existing symbolic link if present
 if [ -L /data/web_static/current ]; then
-	rm /data/web_static/current
+	sudo rm /data/web_static/current
 fi
 
-# Create a symbolic link to the test release
-sudo ln -sf /data/web_static/releases/test/ /data/web_static/current
+sudo ln -s /data/web_static/releases/test/ /data/web_static/current
 
-# Set ownership to ubuntu user and group
 sudo chown -R ubuntu:ubuntu /data
 
-# Configure Nginx hbnb_static server block
-sudo sh -c 'echo "server {
-	listen 80 default_server;
-	listen [::]:80 default_server;
-	add_header X-Served_By '$HOSTNAME';
-	root   /var/www/html;
-	index  index.html index.htm;
+sudo tee /etc/nginx/sites-available/airbnb <<EOF
+server {
+	listen 80;
+	listen [::]:80;
+	server_name marymutuku.tech;
 
-	location /hbnb_static {
-		alias /data/web_static/current;
-		index index.html index.htm;
-	}
+	root /var/www/html;
 
-	location /redirect_me {
-		return 301 https://www.youtube.com/watch?v=QH2-TGUlwu4;
+	location /hbnb_static/ {
+	    alias /data/web_static/current/;
+	    index index.html index.htm;
 	}
 
 	error_page 404 /404.html;
-	location /404 {
-	  root /var/www/html;
-	  internal;
+	location = /404.html {
+	    root /usr/share/nginx/html;
+	    internal;
 	}
-}" > /etc/nginx/sites-available/default'
+
+	location / {
+	    try_files $uri $uri/ =404;
+	}
+}
+EOF
+
+# Create a symbolic link to enable the server block
+sudo ln -sf /etc/nginx/sites-available/airbnb /etc/nginx/sites-enabled/
 
 # Restart Nginx
 sudo service nginx restart
