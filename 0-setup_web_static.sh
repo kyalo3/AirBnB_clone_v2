@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# Set up web static
 
 # Install Nginx if not already installed
 if ! command -v nginx &> /dev/null; then
@@ -40,18 +41,18 @@ server {
 	root /var/www/html;
 
 	location /hbnb_static/ {
-	    alias /data/web_static/current/;
-	    index index.html index.htm;
+		alias /data/web_static/current/;
+		index index.html index.htm;
 	}
 
 	error_page 404 /404.html;
 	location = /404.html {
-	    root /usr/share/nginx/html;
-	    internal;
+		root /usr/share/nginx/html;
+		internal;
 	}
 
 	location / {
-	    try_files \$uri \$uri/ =404;
+		try_files \$uri \$uri/ =404;
 	}
 }
 EOF
