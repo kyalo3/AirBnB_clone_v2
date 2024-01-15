@@ -1,26 +1,63 @@
-#!/usr/bin/env bash
-# installs and configures nginx on server for web_static
+#!/bin/bash
 
-if ! command -v nginx &> /dev/null
-then
-	sudo apt-get -y update
-	sudo apt-get -y install nginx
-	sudo ufw allow 'Nginx HTTP'
-	echo "Hello World!" | sudo tee /var/www/html/index.html
-	echo "Page not Found" | sudo tee /var/www/html/custom_404.html
-	sudo sed -i  "s/\s*server_name _;/&\n\trewrite ^\/redirect_me.*$ https:\/\/example.com permanent;\n\terror_page 404 \/custom_404.html;\n\tadd_header X-Served-By \"$(hostname)\";/" /etc/nginx/sites-available/default
-	sudo service nginx start
+# Install Nginx if not already installed
+if ! command -v nginx &> /dev/null; then
+	sudo apt-get update
+	sudo apt-get install -y nginx
 fi
-sudo mkdir -p /data/web_static/shared/
+
+# Create necessary directories
 sudo mkdir -p /data/web_static/releases/test/
-echo "Great School" | sudo tee /data/web_static/releases/test/index.html
+sudo mkdir -p /data/web_static/shared/
+
+# Create a fake HTML file for testing
+sudo tee /data/web_static/releases/test/index.html <<EOF
+<html>
+  <head>
+  </head>
+  <body>
+	Holberton School
+  </body>
+</html>
+EOF
+
+# Create a symbolic link /data/web_static/current
 if [ -L /data/web_static/current ]; then
 	sudo rm /data/web_static/current
 fi
 sudo ln -s /data/web_static/releases/test/ /data/web_static/current
-sudo chown -R ubuntu:ubuntu /data/
-sudo sed -i '/X-Served-By/a\
-		location /hbnb_static {\
-		    alias /data/web_static/current;\
-		}' /etc/nginx/sites-available/default
+
+# Give ownership of the /data/ folder to the ubuntu user and group
+sudo chown -R ubuntu:ubuntu /data
+
+# Update Nginx configuration
+sudo tee /etc/nginx/sites-available/airbnb <<EOF
+server {
+	listen 80;
+	listen [::]:80;
+	server_name localhost;
+
+	root /var/www/html;
+
+	location /hbnb_static/ {
+	    alias /data/web_static/current/;
+	    index index.html index.htm;
+	}
+
+	error_page 404 /404.html;
+	location = /404.html {
+	    root /usr/share/nginx/html;
+	    internal;
+	}
+
+	location / {
+	    try_files \$uri \$uri/ =404;
+	}
+}
+EOF
+
+# Create a symbolic link to enable the server block
+sudo ln -sf /etc/nginx/sites-available/airbnb /etc/nginx/sites-enabled/
+
+# Restart Nginx
 sudo service nginx restart
