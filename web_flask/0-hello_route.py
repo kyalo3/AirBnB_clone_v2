@@ -1,11 +1,14 @@
 #!/usr/bin/python3
-
+""" model- flask app"""
 from flask import Flask
+
+
 app = Flask(__name__)
 
 
 @app.route("/", strict_slashes=False)
 def hello():
+    """string hello hbnb"""
     return "Hello HBNB!"
 
 
