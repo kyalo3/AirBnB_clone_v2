@@ -33,7 +33,7 @@ def python_text(text):
     return 'Python {}'.format(text)
 
 
-@app.route('/number/<n>', strict_slashes=False)
+@app.route('/number/<int:n>', strict_slashes=False)
 def display_number(n):
     """ a function that returns a value only when it is a number"""
     return '{} is a number'.format(n)
